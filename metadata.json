@@ -1,0 +1,7 @@
+{
+  "name": "KindPulse - Community Donation & Cause Programmes",
+  "description": "Discover, fund, and launch impactful donation programmes for education, healthcare, hunger relief, and sustainable community development.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

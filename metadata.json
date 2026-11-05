@@ -1,6 +1,6 @@
 {
-  "name": "KindPulse - Community Donation & Cause Programmes",
-  "description": "Discover, fund, and launch impactful donation programmes for education, healthcare, hunger relief, and sustainable community development.",
+  "name": "Interact Club O&U High School - KidsConnect Community Fund",
+  "description": "Every child thrives when a community cares. Partnering directly with local school communities for nutrition, scholastic supplies, and learning tools.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

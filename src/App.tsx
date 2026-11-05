@@ -3,467 +3,551 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { Campaign, CampaignCategory, CurrencyCode, DonationRecord, DonorCheer, ImpactTier } from './types/donation';
-import { INITIAL_CAMPAIGNS, INITIAL_DONOR_CHEERS } from './data/initialCampaigns';
-import { Navbar } from './components/Navbar';
-import { HeroBanner } from './components/HeroBanner';
-import { CategoryFilter } from './components/CategoryFilter';
-import { CampaignCard } from './components/CampaignCard';
-import { CampaignDetailModal } from './components/CampaignDetailModal';
-import { DonationModal } from './components/DonationModal';
-import { DonationReceiptModal } from './components/DonationReceiptModal';
-import { CreateCampaignModal } from './components/CreateCampaignModal';
-import { UserImpactDashboard } from './components/UserImpactDashboard';
-import { HowItWorksModal } from './components/HowItWorksModal';
-import { Heart, Sparkles, ShieldCheck, ArrowRight, PlusCircle, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  ActiveTab, CompletedPledge, SchoolLeaderboardEntry, 
+  SchoolRegistrationRequest, ClubContentItem, AdminProfile 
+} from './types/interactClub';
+import { INITIAL_SCHOOLS, INITIAL_CLUB_CONTENT } from './data/interactData';
+import { HeaderNavbar } from './components/HeaderNavbar';
+import { HeroSection } from './components/HeroSection';
+import { AboutDirectionSection } from './components/AboutDirectionSection';
+import { LiveImpactTracker } from './components/LiveImpactTracker';
+import { HowItWorksSection } from './components/HowItWorksSection';
+import { PledgeSupportZone } from './components/PledgeSupportZone';
+import { SchoolLeaderboard } from './components/SchoolLeaderboard';
+import { SpotlightStory } from './components/SpotlightStory';
+import { EventsNewsSection } from './components/EventsNewsSection';
+import { FooterSection } from './components/FooterSection';
+import { ProjectsTab } from './components/ProjectsTab';
+import { SchoolZoneTab } from './components/SchoolZoneTab';
+import { TransparencyTab } from './components/TransparencyTab';
+import { ProposalTab } from './components/ProposalTab';
+import { AdCampaignStudio } from './components/AdCampaignStudio';
+import { CommunityMediaGallery } from './components/CommunityMediaGallery';
+import { AdminDashboard } from './components/AdminDashboard';
+import { RegisterSchoolModal } from './components/RegisterSchoolModal';
+import { SuccessStoriesModal } from './components/SuccessStoriesModal';
+import { PledgeCertificateModal } from './components/PledgeCertificateModal';
+import { Check, Sparkles } from 'lucide-react';
 
 const STORAGE_KEYS = {
-  CAMPAIGNS: 'kindpulse_campaigns_v1',
-  USER_DONATIONS: 'kindpulse_user_donations_v1',
-  DONOR_CHEERS: 'kindpulse_cheers_v1',
-  CURRENCY: 'kindpulse_currency_v1',
+  SCHOOLS: 'ou_interact_schools_v5',
+  PLEDGES: 'ou_interact_pledges_v5',
+  CONTENT: 'ou_interact_content_v5',
+  ADMIN_SESSION: 'ou_interact_admin_session_v5',
 };
 
 export default function App() {
-  // 1. Core State
-  const [campaigns, setCampaigns] = useState<Campaign[]>(() => {
+  const [activeTab, setActiveTab] = useState<ActiveTab>('home');
+
+  const [schools, setSchools] = useState<SchoolLeaderboardEntry[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEYS.CAMPAIGNS);
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (e) {
-      console.warn('Failed to parse saved campaigns:', e);
-    }
-    return INITIAL_CAMPAIGNS;
+      const saved = localStorage.getItem(STORAGE_KEYS.SCHOOLS);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return INITIAL_SCHOOLS;
   });
 
-  const [userDonations, setUserDonations] = useState<DonationRecord[]>(() => {
+  const [pledges, setPledges] = useState<CompletedPledge[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEYS.USER_DONATIONS);
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (e) {
-      console.warn('Failed to parse saved user donations:', e);
-    }
+      const saved = localStorage.getItem(STORAGE_KEYS.PLEDGES);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
     return [];
   });
 
-  const [donorCheers, setDonorCheers] = useState<DonorCheer[]>(() => {
+  const [contentItems, setContentItems] = useState<ClubContentItem[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEYS.DONOR_CHEERS);
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (e) {
-      console.warn('Failed to parse saved donor cheers:', e);
-    }
-    return INITIAL_DONOR_CHEERS;
-  });
-
-  const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.CURRENCY) as CurrencyCode;
-      if (saved) return saved;
+      const saved = localStorage.getItem(STORAGE_KEYS.CONTENT);
+      if (saved) return JSON.parse(saved);
     } catch (e) {}
-    return 'USD';
+    return INITIAL_CLUB_CONTENT;
   });
 
-  // UI state
-  const [activeTab, setActiveTab] = useState<'explore' | 'my-impact'>('explore');
-  const [selectedCategory, setSelectedCategory] = useState<CampaignCategory | 'all'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'urgent' | 'funded' | 'newest' | 'target'>('urgent');
+  const [currentAdmin, setCurrentAdmin] = useState<AdminProfile | null>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.ADMIN_SESSION);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return null;
+  });
 
   // Modal dialog states
-  const [selectedCampaignForDetail, setSelectedCampaignForDetail] = useState<Campaign | null>(null);
-  const [campaignForDonation, setCampaignForDonation] = useState<Campaign | null>(null);
-  const [presetTierForDonation, setPresetTierForDonation] = useState<ImpactTier | undefined>(undefined);
-  const [recentReceiptRecord, setRecentReceiptRecord] = useState<DonationRecord | null>(null);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isStoriesModalOpen, setIsStoriesModalOpen] = useState(false);
+  const [activeCertificate, setActiveCertificate] = useState<CompletedPledge | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Sync state to local storage
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEYS.CAMPAIGNS, JSON.stringify(campaigns));
+      localStorage.setItem(STORAGE_KEYS.SCHOOLS, JSON.stringify(schools));
     } catch (e) {}
-  }, [campaigns]);
+  }, [schools]);
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEYS.USER_DONATIONS, JSON.stringify(userDonations));
+      localStorage.setItem(STORAGE_KEYS.PLEDGES, JSON.stringify(pledges));
     } catch (e) {}
-  }, [userDonations]);
+  }, [pledges]);
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEYS.DONOR_CHEERS, JSON.stringify(donorCheers));
+      localStorage.setItem(STORAGE_KEYS.CONTENT, JSON.stringify(contentItems));
     } catch (e) {}
-  }, [donorCheers]);
+  }, [contentItems]);
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEYS.CURRENCY, selectedCurrency);
+      if (currentAdmin) {
+        localStorage.setItem(STORAGE_KEYS.ADMIN_SESSION, JSON.stringify(currentAdmin));
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.ADMIN_SESSION);
+      }
     } catch (e) {}
-  }, [selectedCurrency]);
+  }, [currentAdmin]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
+    setTimeout(() => setToastMessage(null), 3800);
   };
 
-  // Filtered & Sorted Campaigns
-  const filteredCampaigns = useMemo(() => {
-    return campaigns
-      .filter((c) => {
-        const matchesCategory = selectedCategory === 'all' || c.category === selectedCategory;
-        const matchesSearch =
-          searchQuery.trim() === '' ||
-          c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          c.tagline.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          c.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          c.country.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          c.organizer.name.toLowerCase().includes(searchQuery.toLowerCase());
+  const scrollToPledge = () => {
+    setActiveTab('home');
+    setTimeout(() => {
+      const el = document.getElementById('pledge-zone');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
+  };
 
-        return matchesCategory && matchesSearch;
-      })
-      .sort((a, b) => {
-        if (sortBy === 'urgent') {
-          if (a.urgent && !b.urgent) return -1;
-          if (!a.urgent && b.urgent) return 1;
-          return a.daysLeft - b.daysLeft;
-        } else if (sortBy === 'funded') {
-          const pctA = a.currentAmount / a.targetAmount;
-          const pctB = b.currentAmount / b.targetAmount;
-          return pctB - pctA;
-        } else if (sortBy === 'newest') {
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        } else if (sortBy === 'target') {
-          return b.targetAmount - a.targetAmount;
-        }
-        return 0;
+  const handlePledgeSuccess = (newPledge: CompletedPledge) => {
+    setPledges((prev) => [newPledge, ...prev]);
+
+    if (newPledge.dedicatedSchool && newPledge.dedicatedSchool !== 'All Partner Schools (Highest Need)') {
+      setSchools((prev) => {
+        const updated = prev.map((s) => {
+          if (s.name === newPledge.dedicatedSchool) {
+            const addedItems = newPledge.quantityUnits || 1;
+            const newCount = s.itemsPledgedCount + addedItems;
+            const newPercent = Math.min(100, Math.round((newCount / s.targetCount) * 100));
+            const newStudents = s.studentsSupported + (addedItems * 2);
+            return {
+              ...s,
+              itemsPledgedCount: newCount,
+              progressPercent: newPercent,
+              studentsSupported: newStudents,
+            };
+          }
+          return s;
+        });
+
+        return updated
+          .sort((a, b) => b.itemsPledgedCount - a.itemsPledgedCount)
+          .map((s, idx) => ({ ...s, rank: idx + 1 }));
       });
-  }, [campaigns, selectedCategory, searchQuery, sortBy]);
-
-  // Aggregate metrics
-  const totalDonatedUSD = useMemo(() => {
-    return campaigns.reduce((sum, c) => sum + c.currentAmount, 0);
-  }, [campaigns]);
-
-  // Handlers
-  const handleOpenDonate = (campaign: Campaign, presetTier?: ImpactTier) => {
-    setCampaignForDonation(campaign);
-    setPresetTierForDonation(presetTier);
-  };
-
-  const handleDonationComplete = (record: DonationRecord) => {
-    // 1. Update campaign funded amounts & donor count
-    setCampaigns((prev) =>
-      prev.map((c) => {
-        if (c.id === record.campaignId) {
-          const updatedAmount = c.currentAmount + record.amount;
-          return {
-            ...c,
-            currentAmount: updatedAmount,
-            donorCount: c.donorCount + 1,
-            // check milestone achievement
-            milestones: c.milestones.map((m) =>
-              updatedAmount >= m.targetAmount ? { ...m, achieved: true } : m
-            ),
-          };
-        }
-        return c;
-      })
-    );
-
-    // 2. Save to user personal history
-    setUserDonations((prev) => [record, ...prev]);
-
-    // 3. Add to public cheers if message provided
-    if (record.message) {
-      const newCheer: DonorCheer = {
-        id: 'cheer-' + Date.now(),
-        donorName: record.isAnonymous ? 'Kind Supporter' : record.donorName,
-        amount: record.amount,
-        currency: record.currency,
-        timestamp: 'Just now',
-        message: record.message,
-        isAnonymous: record.isAnonymous,
-        likesCount: 1,
-      };
-      setDonorCheers((prev) => [newCheer, ...prev]);
     }
 
-    // 4. Close donation modal and open official receipt
-    setCampaignForDonation(null);
-    setPresetTierForDonation(undefined);
-    setRecentReceiptRecord(record);
-
-    showToast(`Thank you! Your donation receipt ${record.receiptNumber} has been generated.`);
+    setActiveCertificate(newPledge);
+    showToast(`Thank you! Supply Pledge Certificate ${newPledge.pledgeCertificateNumber} generated.`);
   };
 
-  const handleCampaignCreated = (newCampaign: Campaign) => {
-    setCampaigns((prev) => [newCampaign, ...prev]);
-    setIsCreateModalOpen(false);
-    setSelectedCampaignForDetail(newCampaign);
-    showToast(`Congratulations! "${newCampaign.title}" is now active and ready for donations.`);
-  };
+  const handleSchoolRegistered = (req: SchoolRegistrationRequest) => {
+    const clusterLat = 0.3420 + (Math.random() - 0.5) * 0.04;
+    const clusterLng = 32.5750 + (Math.random() - 0.5) * 0.04;
 
-  const handleAddCheer = (campaignId: string, message: string, donorName: string) => {
-    const cheer: DonorCheer = {
-      id: 'cheer-' + Date.now(),
-      donorName,
-      amount: 25,
-      currency: selectedCurrency,
-      timestamp: 'Just now',
-      message,
-      isAnonymous: false,
-      likesCount: 0,
+    const newEntry: SchoolLeaderboardEntry = {
+      id: req.id,
+      rank: schools.length + 1,
+      name: req.schoolName,
+      level: req.level + ' School',
+      location: req.location,
+      progressPercent: 0,
+      itemsPledgedCount: 0,
+      targetCount: 500,
+      metricLabel: 'Backpacks & Kits Pledged',
+      studentsSupported: 0,
+      coordinator: req.contactPerson,
+      lat: Number(clusterLat.toFixed(4)),
+      lng: Number(clusterLng.toFixed(4)),
     };
-    setDonorCheers((prev) => [cheer, ...prev]);
-    showToast('Your message of encouragement was posted!');
+
+    setSchools((prev) => [...prev, newEntry]);
+    setIsRegisterModalOpen(false);
+    showToast(`"${req.schoolName}" has been successfully enrolled and pinned to the School Zone map!`);
+  };
+
+  const handlePledgeToSchool = (schoolName: string) => {
+    scrollToPledge();
+    showToast(`Directing your material pledge to ${schoolName}. Choose your items below.`);
+  };
+
+  // Admin content operations
+  const handleAdminLogin = (emailInput: string, passInput: string): boolean => {
+    const normalized = emailInput.toLowerCase().trim();
+    if (
+      normalized.includes('calton') ||
+      normalized.includes('rasul') ||
+      normalized.includes('patron') ||
+      normalized.includes('ouinteract')
+    ) {
+      const role = normalized.includes('calton')
+        ? 'Project Manager'
+        : normalized.includes('rasul')
+        ? 'Club President'
+        : 'Faculty Patron';
+      setCurrentAdmin({
+        email: normalized,
+        isAdmin: true,
+        role,
+      });
+      showToast(`Welcome back, ${role}! Content management active.`);
+      return true;
+    }
+    return false;
+  };
+
+  const handleAdminLogout = () => {
+    setCurrentAdmin(null);
+    showToast('Signed out of admin dashboard.');
+  };
+
+  const handleSaveContentItem = (data: Partial<ClubContentItem> & { id?: string }) => {
+    if (data.id) {
+      setContentItems((prev) =>
+        prev.map((item) => (item.id === data.id ? { ...item, ...data } as ClubContentItem : item))
+      );
+      showToast('Content item updated.');
+    } else {
+      const newItem: ClubContentItem = {
+        id: 'item-' + Date.now(),
+        type: data.type || 'project',
+        title: data.title || '',
+        body: data.body || '',
+        event_date: data.event_date,
+        published: data.published ?? true,
+        created_at: new Date().toISOString(),
+      };
+      setContentItems((prev) => [newItem, ...prev]);
+      showToast('New content published to website.');
+    }
+  };
+
+  const handleDeleteContentItem = (id: string) => {
+    setContentItems((prev) => prev.filter((x) => x.id !== id));
+    showToast('Item deleted.');
+  };
+
+  const handleTogglePublish = (id: string) => {
+    setContentItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, published: !item.published } : item))
+    );
   };
 
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-900 flex flex-col font-sans selection:bg-emerald-100 selection:text-emerald-900">
+    <div className="min-h-screen bg-stone-50 text-stone-900 flex flex-col font-sans selection:bg-amber-100 selection:text-amber-900">
       
-      {/* Toast Notification */}
+      {/* Toast Alert with welcoming bouncy pop-in */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-stone-900 text-white text-xs sm:text-sm font-medium py-3 px-4 rounded-xl shadow-xl border border-stone-800 flex items-center gap-2 animate-bounce">
+        <div className="fixed bottom-6 right-6 z-50 bg-stone-900 text-white text-xs sm:text-sm font-semibold py-3 px-4 rounded-xl shadow-xl border border-stone-800 flex items-center gap-2 animate-bounce">
           <Check className="w-4 h-4 text-emerald-400" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Main Navbar */}
-      <Navbar
+      {/* Main Navigation Bar */}
+      <HeaderNavbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onOpenCreateModal={() => setIsCreateModalOpen(true)}
-        onOpenHowItWorks={() => setIsHowItWorksOpen(true)}
-        selectedCurrency={selectedCurrency}
-        onSelectCurrency={setSelectedCurrency}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        totalUserDonationsCount={userDonations.length}
+        onPledgeClick={scrollToPledge}
+        isAdminLoggedIn={!!currentAdmin}
       />
 
-      {/* Main View Switcher */}
+      {/* Main View Router */}
       <main className="flex-1">
-        {activeTab === 'explore' ? (
+        
+        {/* 1. HOME TAB */}
+        {activeTab === 'home' && (
           <div>
-            {/* Hero Section */}
-            <HeroBanner
-              onExploreClick={() => {
-                const el = document.getElementById('programmes-directory');
-                el?.scrollIntoView({ behavior: 'smooth' });
+            {/* 1. HERO SECTION (Welcoming Animations + Non-Billing Copy) */}
+            <HeroSection
+              onPledgeClick={scrollToPledge}
+              onPartnerSchoolsClick={() => {
+                setActiveTab('school-zone');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              onStartCampaignClick={() => setIsCreateModalOpen(true)}
-              selectedCurrency={selectedCurrency}
-              totalDonatedSoFarUSD={totalDonatedUSD}
-              totalCampaignsCount={campaigns.length}
+              onViewAdsClick={() => {
+                setActiveTab('ads');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onViewProposalClick={() => {
+                setActiveTab('proposal');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
             />
 
-            {/* Programmes Directory Section */}
-            <section id="programmes-directory" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 space-y-8">
-              
-              {/* Category Filter & Controls */}
-              <CategoryFilter
-                selectedCategory={selectedCategory}
-                onSelectCategory={setSelectedCategory}
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                sortBy={sortBy}
-                onSortChange={setSortBy}
-                totalFilteredCount={filteredCampaigns.length}
-              />
+            {/* 2. ABOUT & OUR DIRECTION */}
+            <AboutDirectionSection />
 
-              {/* Campaigns Grid */}
-              {filteredCampaigns.length === 0 ? (
-                <div className="bg-white border border-stone-200 rounded-2xl p-12 text-center space-y-4">
-                  <div className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center mx-auto text-stone-400">
-                    <Heart className="w-6 h-6" />
-                  </div>
+            {/* 3. LIVE IMPACT TRACKER */}
+            <LiveImpactTracker />
+
+            {/* 4. HOW IT WORKS */}
+            <HowItWorksSection />
+
+            {/* 5. PLEDGE SUPPORT ZONE (Zero money, 100% material supplies) */}
+            <PledgeSupportZone
+              onPledgeSuccess={handlePledgeSuccess}
+            />
+
+            {/* 6. THE SCHOOL LEADERBOARD */}
+            <SchoolLeaderboard
+              schools={schools}
+              onRegisterSchoolClick={() => setIsRegisterModalOpen(true)}
+              onPledgeToSchool={handlePledgeToSchool}
+            />
+
+            {/* 7. SPOTLIGHT STORY */}
+            <SpotlightStory
+              onReadMoreClick={() => setIsStoriesModalOpen(true)}
+            />
+
+            {/* 8. COMMUNITY PHOTO GALLERY PREVIEW */}
+            <section className="py-12 bg-white border-b border-stone-200">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                   <div>
-                    <h3 className="text-base font-bold text-stone-900">
-                      No matching donation programmes found
-                    </h3>
-                    <p className="text-xs text-stone-500 mt-1 max-w-sm mx-auto">
-                      Try adjusting your search keywords, clear category filters, or launch your own community programme!
-                    </p>
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800 uppercase tracking-widest">
+                      <span>📸</span>
+                      <span>Verified Community Photo Archive</span>
+                    </div>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-stone-900 font-serif mt-1">
+                      Our People &amp; School Community in Action
+                    </h2>
                   </div>
-                  <div className="flex justify-center gap-3">
-                    <button
-                      onClick={() => {
-                        setSelectedCategory('all');
-                        setSearchQuery('');
-                      }}
-                      className="px-4 py-2 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-lg transition-colors"
-                    >
-                      Reset Filters
-                    </button>
-                    <button
-                      onClick={() => setIsCreateModalOpen(true)}
-                      className="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors flex items-center gap-1.5"
-                    >
-                      <PlusCircle className="w-3.5 h-3.5" />
-                      <span>Start a Programme</span>
-                    </button>
-                  </div>
+
+                  <button
+                    onClick={() => {
+                      setActiveTab('gallery');
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="self-start sm:self-auto text-xs font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 px-4 py-2 rounded-xl transition-colors flex items-center gap-1.5"
+                  >
+                    <span>View All 8 Photos in Gallery</span>
+                    <span>→</span>
+                  </button>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredCampaigns.map((camp) => (
-                    <CampaignCard
-                      key={camp.id}
-                      campaign={camp}
-                      selectedCurrency={selectedCurrency}
-                      onSelect={(c) => setSelectedCampaignForDetail(c)}
-                      onDonate={(c) => handleOpenDonate(c)}
-                    />
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    { src: '/assets/aistudio/Peas_Sampling_Nama_High_School_Visit_cce89195.png', title: 'PEAS Samling Nama Visit' },
+                    { src: '/assets/aistudio/images__3__245ac07c.jpg', title: 'Student Leaders Assembly' },
+                    { src: '/assets/aistudio/images__4__88a8e4c6.jpg', title: 'Headmistress Tr. Agnes' },
+                    { src: '/assets/aistudio/images__1__9b1711cc.jpg', title: 'Coach Marcus & Athlete' },
+                  ].map((img, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => {
+                        setActiveTab('gallery');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className="group cursor-pointer rounded-2xl overflow-hidden border border-stone-200 aspect-[4/3] relative bg-stone-100 shadow-2xs hover:shadow-md transition-all duration-300 hover:-translate-y-1"
+                    >
+                      <img src={img.src} alt={img.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end p-3">
+                        <span className="text-white text-[11px] font-bold leading-tight drop-shadow-sm">{img.title}</span>
+                      </div>
+                    </div>
                   ))}
                 </div>
-              )}
-
-              {/* Call to Action Banner at bottom */}
-              <div className="bg-gradient-to-r from-emerald-800 to-teal-900 text-white rounded-2xl p-8 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
-                <div className="space-y-2 text-center md:text-left">
-                  <span className="text-xs font-bold uppercase tracking-widest text-emerald-300">
-                    Community Driven Philanthropy
-                  </span>
-                  <h3 className="text-2xl sm:text-3xl font-bold font-serif">
-                    Do you have a project ready to make a difference?
-                  </h3>
-                  <p className="text-emerald-100 text-xs sm:text-sm max-w-xl">
-                    Launch your cause in minutes. We provide zero-deduction payout processing, instant charitable tax receipts for your backers, and field audit tools.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="whitespace-nowrap px-6 py-3.5 bg-white hover:bg-emerald-50 text-emerald-950 font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2"
-                >
-                  <PlusCircle className="w-4 h-4 text-emerald-700" />
-                  <span>Start Your Donation Programme</span>
-                </button>
               </div>
-
             </section>
+
+            {/* 9. SAVE THE DATE (Events) & CLUB UPDATES (News) & JOIN US */}
+            <EventsNewsSection
+              contentItems={contentItems}
+              onOpenContact={() => {
+                showToast('Interact Club Office: Room B-12, Onwards & Upwards Secondary School Campus · ouinteract.org');
+              }}
+              onOpenAdmin={() => {
+                setActiveTab('admin');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
           </div>
-        ) : (
-          /* Personal Philanthropy Ledger */
-          <UserImpactDashboard
-            donationRecords={userDonations}
-            selectedCurrency={selectedCurrency}
-            onViewReceipt={(r) => setRecentReceiptRecord(r)}
-            onExploreProgrammes={() => setActiveTab('explore')}
-          />
         )}
+
+        {/* 2. ABOUT TAB */}
+        {activeTab === 'about' && (
+          <div className="animate-welcome">
+            <AboutDirectionSection />
+          </div>
+        )}
+
+        {/* 3. PROJECTS TAB (Zero Money) */}
+        {activeTab === 'projects' && (
+          <div className="animate-welcome">
+            <ProjectsTab
+              onPledgeToProject={(tierId) => {
+                scrollToPledge();
+              }}
+            />
+          </div>
+        )}
+
+        {/* 4. PHOTO GALLERY TAB (All 8 Uploaded School Photos) */}
+        {activeTab === 'gallery' && (
+          <div className="animate-welcome">
+            <CommunityMediaGallery
+              onPledgeClick={scrollToPledge}
+            />
+          </div>
+        )}
+
+        {/* 5. AD CAMPAIGNS STUDIO (Spotify, YouTube, LinkedIn, Netlify, Instagram) */}
+        {activeTab === 'ads' && (
+          <div className="animate-welcome">
+            <AdCampaignStudio
+              onPledgeClick={scrollToPledge}
+            />
+          </div>
+        )}
+
+        {/* 5. EVENTS TAB */}
+        {activeTab === 'events' && (
+          <div className="py-12 animate-welcome">
+            <EventsNewsSection
+              contentItems={contentItems}
+              onOpenContact={() => {
+                showToast('Interact Club Office: Room B-12, O&U High School · ouinteract.org');
+              }}
+              onOpenAdmin={() => setActiveTab('admin')}
+            />
+          </div>
+        )}
+
+        {/* 6. NEWS TAB */}
+        {activeTab === 'news' && (
+          <div className="py-12 animate-welcome">
+            <EventsNewsSection
+              contentItems={contentItems}
+              onOpenContact={() => {
+                showToast('Interact Club Office: Room B-12, O&U High School · ouinteract.org');
+              }}
+              onOpenAdmin={() => setActiveTab('admin')}
+            />
+          </div>
+        )}
+
+        {/* 7. SCHOOL ZONE TAB */}
+        {activeTab === 'school-zone' && (
+          <div className="animate-welcome">
+            <SchoolZoneTab
+              schools={schools}
+              onRegisterSchoolClick={() => setIsRegisterModalOpen(true)}
+              onPledgeToSchool={handlePledgeToSchool}
+            />
+          </div>
+        )}
+
+        {/* 8. TRANSPARENCY TAB (Material Transparency) */}
+        {activeTab === 'transparency' && (
+          <div className="animate-welcome">
+            <TransparencyTab
+              pledges={pledges}
+              onPledgeClick={scrollToPledge}
+            />
+          </div>
+        )}
+
+        {/* 9. PROPOSAL TAB */}
+        {activeTab === 'proposal' && (
+          <div className="animate-welcome">
+            <ProposalTab
+              onDonateClick={scrollToPledge}
+              onExploreProjects={() => {
+                setActiveTab('projects');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
+          </div>
+        )}
+
+        {/* 10. ADMIN DASHBOARD TAB */}
+        {activeTab === 'admin' && (
+          <div className="animate-welcome">
+            <AdminDashboard
+              contentItems={contentItems}
+              onSaveItem={handleSaveContentItem}
+              onDeleteItem={handleDeleteContentItem}
+              onTogglePublish={handleTogglePublish}
+              currentAdmin={currentAdmin}
+              onLogin={handleAdminLogin}
+              onLogout={handleAdminLogout}
+              onNavigateToAds={() => {
+                setActiveTab('ads');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onNavigateToProposal={() => {
+                setActiveTab('proposal');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
+          </div>
+        )}
+
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-stone-200 bg-white py-12 text-stone-600 text-xs print:hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white">
-                <Heart className="w-4 h-4 fill-white" />
-              </div>
-              <span className="font-serif text-lg font-bold text-stone-900">
-                KindPulse
-              </span>
-              <span className="text-stone-300">|</span>
-              <span className="text-stone-500">
-                Direct Grassroots Philanthropy
-              </span>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-6 text-xs text-stone-500">
-              <button onClick={() => setIsHowItWorksOpen(true)} className="hover:text-stone-900 transition-colors">
-                Verification Pipeline
-              </button>
-              <button onClick={() => setIsCreateModalOpen(true)} className="hover:text-stone-900 transition-colors">
-                Programme Builder
-              </button>
-              <button onClick={() => setActiveTab('my-impact')} className="hover:text-stone-900 transition-colors">
-                Tax Receipts &amp; Ledger
-              </button>
-            </div>
-          </div>
-
-          <div className="border-t border-stone-100 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-stone-400">
-            <div>
-              © 2026 KindPulse Community Donation Initiatives. 100% of public funds routed directly to designated projects.
-            </div>
-            <div className="flex items-center gap-2 text-stone-500">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Fiduciary Custody · Encrypted Transactions · Audited Accounts</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+      {/* FOOTER SECTION */}
+      <FooterSection
+        onNavTab={(tab) => {
+          setActiveTab(tab);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onOpenTransparency={() => {
+          setActiveTab('transparency');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onOpenContact={() => {
+          showToast('Interact Club Office: Room B-12, Onwards & Upwards Secondary School Campus · ouinteract.org');
+        }}
+        onOpenProposal={() => {
+          setActiveTab('proposal');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onOpenAds={() => {
+          setActiveTab('ads');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
 
       {/* MODALS */}
 
-      {/* 1. Campaign Details & Story Modal */}
-      {selectedCampaignForDetail && (
-        <CampaignDetailModal
-          campaign={selectedCampaignForDetail}
-          onClose={() => setSelectedCampaignForDetail(null)}
-          onDonate={(c, tier) => {
-            setSelectedCampaignForDetail(null);
-            handleOpenDonate(c, tier);
-          }}
-          selectedCurrency={selectedCurrency}
-          donorCheers={donorCheers}
-          onAddCheer={handleAddCheer}
+      {/* 1. Register School or PTA Modal */}
+      {isRegisterModalOpen && (
+        <RegisterSchoolModal
+          onClose={() => setIsRegisterModalOpen(false)}
+          onRegistered={handleSchoolRegistered}
         />
       )}
 
-      {/* 2. Donation Checkout Modal */}
-      {campaignForDonation && (
-        <DonationModal
-          campaign={campaignForDonation}
-          presetTier={presetTierForDonation}
-          selectedCurrency={selectedCurrency}
-          onClose={() => {
-            setCampaignForDonation(null);
-            setPresetTierForDonation(undefined);
-          }}
-          onDonationComplete={handleDonationComplete}
+      {/* 2. Success Stories Modal */}
+      {isStoriesModalOpen && (
+        <SuccessStoriesModal
+          onClose={() => setIsStoriesModalOpen(false)}
+          onDonateClick={scrollToPledge}
         />
       )}
 
-      {/* 3. Official Tax Receipt Modal */}
-      {recentReceiptRecord && (
-        <DonationReceiptModal
-          record={recentReceiptRecord}
-          onClose={() => setRecentReceiptRecord(null)}
+      {/* 3. Official Material Supply Pledge Certificate Modal */}
+      {activeCertificate && (
+        <PledgeCertificateModal
+          pledge={activeCertificate}
+          onClose={() => setActiveCertificate(null)}
           onShare={() => {
-            navigator.clipboard.writeText(window.location.href);
-            showToast('Cause link copied to clipboard to share with friends!');
-          }}
-        />
-      )}
-
-      {/* 4. Start a Campaign Builder Wizard Modal */}
-      {isCreateModalOpen && (
-        <CreateCampaignModal
-          onClose={() => setIsCreateModalOpen(false)}
-          onCampaignCreated={handleCampaignCreated}
-        />
-      )}
-
-      {/* 5. How It Works & Transparency Modal */}
-      {isHowItWorksOpen && (
-        <HowItWorksModal
-          onClose={() => setIsHowItWorksOpen(false)}
-          onExplore={() => {
-            setIsHowItWorksOpen(false);
-            setActiveTab('explore');
+            navigator.clipboard.writeText('https://ouinteract.org');
+            showToast('ouinteract.org link copied to clipboard!');
           }}
         />
       )}

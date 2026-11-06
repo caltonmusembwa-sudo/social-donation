@@ -3,8 +3,9 @@ import { ClubContentItem, AdminProfile } from '../types/interactClub';
 import { 
   Lock, LogOut, Plus, Trash2, Edit3, CheckCircle2, Shield, 
   AlertCircle, Sparkles, Calendar, BookOpen, Bell, ArrowRight, 
-  ExternalLink, Users, PackageCheck, Award, Smile 
+  ExternalLink, Users, PackageCheck, Award, Smile, Quote, RotateCw, Heart, ChevronLeft, ChevronRight, MessageCircle
 } from 'lucide-react';
+import { DAILY_INSPIRATIONAL_QUOTES } from '../data/interactData';
 
 interface AdminDashboardProps {
   contentItems: ClubContentItem[];
@@ -33,6 +34,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+
+  // Daily Quote state for dashboard with dynamic animation transitions
+  const [quoteIdx, setQuoteIdx] = useState(0);
+  const [quoteTransition, setQuoteTransition] = useState<'zoom' | 'flip' | 'slide' | 'bounce'>('flip');
+  const [quoteAnimKey, setQuoteAnimKey] = useState(0);
+
+  const activeDailyQuote = DAILY_INSPIRATIONAL_QUOTES[quoteIdx];
+
+  const handleNextQuote = () => {
+    const modes: ('zoom' | 'flip' | 'slide' | 'bounce')[] = ['flip', 'slide', 'bounce', 'zoom'];
+    const nextIdx = (quoteIdx + 1) % DAILY_INSPIRATIONAL_QUOTES.length;
+    setQuoteIdx(nextIdx);
+    setQuoteTransition(modes[nextIdx % modes.length]);
+    setQuoteAnimKey((k) => k + 1);
+  };
+
+  const handleSetTransition = (mode: 'zoom' | 'flip' | 'slide' | 'bounce') => {
+    setQuoteTransition(mode);
+    setQuoteAnimKey((k) => k + 1);
+  };
 
   // Content form state
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -219,6 +240,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
             </form>
           </div>
+
+          {/* Everyday Inspiration Banner for Portal Visitors */}
+          <div className="max-w-md mx-auto bg-stone-900 text-white rounded-2xl p-4 border border-stone-800 text-xs flex items-center gap-3 animate-welcome-delayed-1 shadow-md">
+            <div className="w-12 h-16 rounded-xl overflow-hidden shrink-0 border border-stone-700">
+              <img
+                src={DAILY_INSPIRATIONAL_QUOTES[0].imageUrl}
+                alt="Daily Quote"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="space-y-1 min-w-0">
+              <span className="text-[10px] uppercase font-bold text-amber-400 block tracking-wider">
+                Daily Word of Compassion
+              </span>
+              <p className="font-serif italic text-white text-xs truncate">
+                "{DAILY_INSPIRATIONAL_QUOTES[0].quote}"
+              </p>
+              <span className="text-[10px] text-stone-400 block">
+                — {DAILY_INSPIRATIONAL_QUOTES[0].author}
+              </span>
+            </div>
+          </div>
         </div>
       ) : (
         /* If Logged In: Welcoming Animated Command Dashboard */
@@ -367,6 +410,103 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <span className="text-[10px] uppercase font-bold text-stone-400 block mb-1">Announcements:</span>
               <div className="text-2xl font-bold font-serif text-emerald-800">{newsCount} Updates</div>
               <span className="text-[11px] text-stone-500">Live on ouinteract.org</span>
+            </div>
+          </div>
+
+          {/* EVERYDAY INSPIRATION & LEADERSHIP QUOTES WIDGET (Requested Feature) */}
+          <div className="bg-gradient-to-r from-stone-900 via-stone-950 to-amber-950 rounded-3xl p-6 sm:p-7 text-white border border-amber-500/30 shadow-md space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-800 pb-3">
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-400 uppercase tracking-widest">
+                <Quote className="w-4 h-4 text-amber-400" />
+                <span>Daily Words of Service &amp; Leadership</span>
+                <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] px-2 py-0.5 rounded-full font-mono">
+                  {activeDailyQuote.dayLabel}
+                </span>
+              </div>
+
+              {/* Transition Style Selector Buttons */}
+              <div className="flex items-center gap-1.5 bg-stone-900/90 p-1 rounded-xl border border-stone-800 text-[11px]">
+                <span className="text-stone-400 font-semibold px-1.5 hidden md:inline">Effect:</span>
+                {(['flip', 'zoom', 'slide', 'bounce'] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => handleSetTransition(t)}
+                    className={`px-2 py-0.5 rounded-lg capitalize font-semibold transition-all ${
+                      quoteTransition === t
+                        ? 'bg-amber-500 text-stone-950 shadow-xs'
+                        : 'text-stone-300 hover:text-white'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Dynamic Animated Quote Display */}
+            <div 
+              key={`dashboard-quote-${activeDailyQuote.id}-${quoteAnimKey}`}
+              className={`grid grid-cols-1 md:grid-cols-12 gap-5 items-center animate-quote-${quoteTransition}`}
+            >
+              {/* Quote Poster Image */}
+              <div className="md:col-span-3 flex justify-center">
+                <div className="relative aspect-[3/4] w-32 sm:w-36 rounded-2xl overflow-hidden border-2 border-stone-700 shadow-xl group hover:scale-105 transition-transform duration-300">
+                  <img
+                    src={activeDailyQuote.imageUrl}
+                    alt={activeDailyQuote.quote}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-stone-950/70 via-transparent to-transparent" />
+                  <div className="absolute bottom-1.5 left-2 right-2 text-[9px] font-bold text-amber-300 truncate">
+                    {activeDailyQuote.badge}
+                  </div>
+                </div>
+              </div>
+
+              {/* Quote Copy & Leadership Reflection */}
+              <div className="md:col-span-9 space-y-2.5 text-xs">
+                <blockquote className="text-base sm:text-lg font-bold font-serif text-white leading-snug">
+                  "{activeDailyQuote.quote}"
+                </blockquote>
+                
+                <div className="flex items-center gap-2 text-amber-300 font-semibold">
+                  <span>— {activeDailyQuote.author}</span>
+                  <span className="text-stone-500 font-normal">({activeDailyQuote.roleOrContext})</span>
+                </div>
+
+                <p className="text-stone-300 text-xs leading-relaxed max-w-xl">
+                  {activeDailyQuote.subtext}
+                </p>
+
+                {/* Bottom Actions inside Dashboard Quote */}
+                <div className="flex flex-wrap items-center gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleNextQuote}
+                    className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold rounded-xl transition-all flex items-center gap-1.5 hover:-translate-y-0.5 active:scale-95 shadow-xs text-xs"
+                  >
+                    <RotateCw className="w-3.5 h-3.5" />
+                    <span>Next Everyday Quote</span>
+                  </button>
+
+                  <a
+                    href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                      `✨ Daily Motivation from O&U Directorate:\n\n"${activeDailyQuote.quote}" — ${activeDailyQuote.author}\n\nJoin our non-monetary supply drive at: https://ouinteract.org`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all flex items-center gap-1.5 text-xs shadow-xs"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5 fill-white" />
+                    <span>Broadcast on WhatsApp</span>
+                  </a>
+
+                  <span className="text-[10px] text-stone-400 ml-auto hidden sm:inline">
+                    Quote {quoteIdx + 1} of {DAILY_INSPIRATIONAL_QUOTES.length} · Transitions: Zoom, Flip, Slide, Bounce
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 

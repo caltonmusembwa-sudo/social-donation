@@ -40,7 +40,7 @@ export const SpotlightStory: React.FC<SpotlightStoryProps> = ({
                       Coach Marcus &amp; Student Athlete
                     </div>
                     <div className="text-[11px] text-amber-300 font-mono">
-                      Riverdale Track Team &amp; O&amp;U Interact Footwear Drive
+                      PEAS Horizon Bombo Kalule &amp; O&amp;U Interact Buloba
                     </div>
                   </div>
                 </div>

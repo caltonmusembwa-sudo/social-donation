@@ -25,20 +25,34 @@ export interface SupplyPledgeTier {
 
 export type PledgeDeliveryMethod = 'dropoff_school' | 'interact_pickup' | 'dispatch_courier';
 
+export interface SchoolTransportInfo {
+  distanceFromBulobaKm: number;
+  estimatedDriveTime: string;
+  routeHighway: string;
+  transportAccessibility: string;
+  googleMapsDirectionsUrl: string;
+  recommendedTransport: string;
+}
+
 export interface SchoolLeaderboardEntry {
   id: string;
   rank: number;
   name: string;
   level: string;
   location: string;
+  district: string;
+  region: string;
   progressPercent: number;
   itemsPledgedCount: number;
   targetCount: number;
   metricLabel: string;
   studentsSupported: number;
   coordinator: string;
-  lat?: number;
-  lng?: number;
+  lat: number;
+  lng: number;
+  campusPhoto?: string;
+  lastUpdatedDate: string;
+  transportInfo: SchoolTransportInfo;
 }
 
 export interface SuccessStory {
@@ -125,9 +139,26 @@ export interface AdCreative {
 export interface GalleryPhoto {
   id: string;
   title: string;
-  category: 'Campus & Teachers' | 'Student Leaders' | 'Partner Visits' | 'Facilities & Drives';
+  category: 'Campus & Teachers' | 'Student Leaders' | 'Partner Visits' | 'Facilities & Drives' | 'Everyday Quotes & Inspiration';
   imageUrl: string;
   caption: string;
   featured?: boolean;
 }
+
+export type QuoteTransitionMode = 'zoom' | 'flip' | 'slide' | 'bounce';
+
+export interface DailyInspirationalQuote {
+  id: string;
+  quote: string;
+  author: string;
+  roleOrContext: string;
+  subtext: string;
+  imageUrl: string;
+  badge: string;
+  accentColor: string;
+  badgeColor: string;
+  transitionType: QuoteTransitionMode;
+  dayLabel: string;
+}
+
 

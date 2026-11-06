@@ -1,5 +1,6 @@
 import React from 'react';
-import { Compass, Eye, HeartHandshake, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Compass, Eye, HeartHandshake, Sparkles, CheckCircle2, Share2, Quote } from 'lucide-react';
+import { DAILY_INSPIRATIONAL_QUOTES } from '../data/interactData';
 
 export const AboutDirectionSection: React.FC = () => {
   return (
@@ -53,6 +54,28 @@ export const AboutDirectionSection: React.FC = () => {
                   03&nbsp; Integrity
                 </span>
               </div>
+            </div>
+          </div>
+
+          {/* Authentic Campus Background Banner */}
+          <div 
+            className="rounded-3xl p-6 sm:p-10 text-white relative overflow-hidden shadow-md mt-6"
+            style={{
+              backgroundImage: "linear-gradient(to right, rgba(12,10,9,0.92) 25%, rgba(28,25,23,0.85) 65%, rgba(120,53,15,0.75) 100%), url('/assets/aistudio/images__4__88a8e4c6.jpg')",
+              backgroundSize: 'cover',
+              backgroundPosition: 'center 20%',
+            }}
+          >
+            <div className="relative z-10 max-w-2xl space-y-2">
+              <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-mono px-2.5 py-1 rounded-full uppercase tracking-wider font-bold">
+                PEAS Uganda Partner Network
+              </span>
+              <h3 className="text-xl sm:text-2xl font-bold font-serif text-white">
+                "Keep going; everything you need will come at the perfect time."
+              </h3>
+              <p className="text-xs sm:text-sm text-stone-200 leading-relaxed">
+                From PEAS Onwards and Upwards Buloba to Samling Nama High School in Mpigi, our students and teachers stand shoulder to shoulder, building lasting educational equity.
+              </p>
             </div>
           </div>
         </div>
@@ -111,6 +134,100 @@ export const AboutDirectionSection: React.FC = () => {
               </div>
             </article>
 
+          </div>
+        </div>
+
+        {/* 03 / EVERYDAY INSPIRATIONAL QUOTES & COMPASSION (Requested Feature) */}
+        <div className="pt-10 border-t border-stone-100 space-y-8">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-800 uppercase tracking-widest">
+                <span className="font-mono">03 /</span>
+                <span>EVERYDAY QUOTES · WORDS THAT GUIDE US</span>
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-bold text-stone-900 font-serif">
+                Daily Reflections on Service, Giving &amp; Grace
+              </h3>
+            </div>
+            <span className="text-xs text-stone-500 font-medium">
+              4 Timeless Principles of the O&amp;U Interact Spirit
+            </span>
+          </div>
+
+          {/* 4 Quotes Animated Grid with Different Animation & Transition Styles */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {DAILY_INSPIRATIONAL_QUOTES.map((q, idx) => {
+              // Apply different animation classes as requested
+              const animClasses = [
+                'animate-quote-zoom hover:scale-102',
+                'animate-quote-flip hover:scale-102',
+                'animate-quote-slide hover:scale-102',
+                'animate-quote-bounce hover:scale-102',
+              ];
+
+              return (
+                <div
+                  key={q.id}
+                  className={`bg-white rounded-3xl border border-stone-200 overflow-hidden shadow-2xs hover:shadow-xl transition-all duration-500 flex flex-col justify-between group ${animClasses[idx % animClasses.length]}`}
+                >
+                  <div>
+                    {/* Quote Image Poster */}
+                    <div className="relative aspect-[3/4] overflow-hidden bg-stone-900">
+                      <img
+                        src={q.imageUrl}
+                        alt={q.quote}
+                        className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-stone-950/85 via-stone-950/20 to-transparent" />
+                      
+                      <div className="absolute top-3 left-3">
+                        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-md border ${q.badgeColor}`}>
+                          {q.dayLabel.split(' ')[0]}
+                        </span>
+                      </div>
+
+                      <div className="absolute bottom-3 left-3 right-3 text-white">
+                        <span className="text-[10px] font-mono font-bold text-amber-300 block mb-0.5">
+                          {q.badge}
+                        </span>
+                        <div className="font-bold text-sm leading-tight text-white font-serif line-clamp-2">
+                          "{q.quote}"
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Attribution & Context */}
+                    <div className="p-5 space-y-2">
+                      <div className="font-bold text-stone-900 text-xs sm:text-sm font-serif">
+                        — {q.author}
+                      </div>
+                      <p className="text-stone-500 text-[11px] leading-relaxed line-clamp-3">
+                        {q.subtext}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Card Share action */}
+                  <div className="p-5 pt-0 border-t border-stone-100 flex items-center justify-between mt-2">
+                    <span className="text-[10px] text-stone-400 font-mono">
+                      Interact Daily
+                    </span>
+                    <a
+                      href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                        `✨ "${q.quote}" — ${q.author}\n${q.subtext}\n\nSupport PEAS schools at ouinteract.org`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-700 hover:text-emerald-800 text-xs font-bold flex items-center gap-1 hover:underline"
+                      title="Share quote on WhatsApp"
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
+                      <span>Share</span>
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 

@@ -29,7 +29,7 @@ export const PledgeSupportZone: React.FC<PledgeSupportZoneProps> = ({
   const [contributorName, setContributorName] = useState('');
   const [contributorEmail, setContributorEmail] = useState('');
   const [contributorPhone, setContributorPhone] = useState('');
-  const [dedicatedSchool, setDedicatedSchool] = useState<string>('Maplewood Primary (Elementary)');
+  const [dedicatedSchool, setDedicatedSchool] = useState<string>('PEAS Onwards and Upwards Buloba (Interact Host)');
   const [dedicatedStudent, setDedicatedStudent] = useState<string>('');
   const [notes, setNotes] = useState('');
 
@@ -355,10 +355,10 @@ export const PledgeSupportZone: React.FC<PledgeSupportZoneProps> = ({
                         onChange={(e) => setDropoffLocation(e.target.value)}
                         className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-xs"
                       >
-                        <option value="O&U High School Main Administration Office (Room B-12)">O&amp;U High School (Room B-12 Interact Office)</option>
-                        <option value="Maplewood Primary School Bursar Office">Maplewood Primary Bursar Office</option>
-                        <option value="Riverdale Junior School Office">Riverdale Junior School Office</option>
-                        <option value="Oakridge High School Administration">Oakridge High School Administration</option>
+                        <option value="PEAS Onwards and Upwards Buloba (Room B-12 Interact Office)">PEAS Onwards &amp; Upwards Buloba (Room B-12 Interact Office)</option>
+                        <option value="PEAS Samling Nama High School Mpigi (Administration Block)">PEAS Samling Nama High School Mpigi (Admin Block)</option>
+                        <option value="PEAS Horizon High School Bombo Kalule (Front Office)">PEAS Horizon High School Bombo Kalule (Front Office)</option>
+                        <option value="PEAS Pioneer High School (Bursar Office)">PEAS Pioneer High School (Bursar Office)</option>
                       </select>
                     ) : (
                       <input

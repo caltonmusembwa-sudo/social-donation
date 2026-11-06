@@ -15,13 +15,21 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onViewProposalClick,
 }) => {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-stone-950 via-stone-900 to-amber-950 text-white min-h-[520px] flex items-center">
+    <section 
+      className="relative overflow-hidden bg-stone-950 text-white min-h-[560px] flex items-center"
+      style={{
+        backgroundImage: "linear-gradient(to right, rgba(12, 10, 9, 0.94) 20%, rgba(28, 25, 23, 0.90) 55%, rgba(69, 26, 3, 0.82) 100%), url('/assets/aistudio/Peas_Sampling_Nama_High_School_Visit_cce89195.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center 25%',
+        backgroundAttachment: 'scroll',
+      }}
+    >
       
-      {/* Background with welcoming pulse glows */}
-      <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
+      {/* Background with welcoming pulse glows & subtle ambient light */}
+      <div className="absolute inset-0 z-0 opacity-25 pointer-events-none">
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full border-8 border-amber-500/30 blur-2xl animate-pulse-glow" />
         <div className="absolute bottom-0 -left-24 w-80 h-80 rounded-full border-8 border-emerald-500/20 blur-2xl animate-pulse-glow" />
-        <div className="w-full h-full bg-[radial-gradient(#d97706_1px,transparent_1px)] [background-size:24px_24px] opacity-25" />
+        <div className="w-full h-full bg-[radial-gradient(#d97706_1px,transparent_1px)] [background-size:24px_24px] opacity-15" />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">

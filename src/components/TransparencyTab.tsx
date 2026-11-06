@@ -28,18 +28,27 @@ export const TransparencyTab: React.FC<TransparencyTabProps> = ({
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12 animate-fadeIn">
       
-      {/* Header */}
-      <div className="text-center max-w-2xl mx-auto space-y-3">
-        <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-800 uppercase tracking-widest">
-          <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          <span>Fiduciary Governance &amp; Supply Verification</span>
+      {/* Header with Background Image Banner */}
+      <div 
+        className="rounded-3xl p-8 sm:p-10 text-white relative overflow-hidden shadow-md text-center max-w-4xl mx-auto space-y-3"
+        style={{
+          backgroundImage: "linear-gradient(to right, rgba(12,10,9,0.92) 20%, rgba(20,83,45,0.85) 60%, rgba(28,25,23,0.92) 100%), url('/assets/aistudio/images__2__74622b31.jpg')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center 30%',
+        }}
+      >
+        <div className="relative z-10 space-y-3">
+          <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-300 uppercase tracking-widest">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span>PEAS Network Fiduciary Governance &amp; Supply Verification</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold font-serif text-white">
+            Our 100% Direct Material Policy
+          </h2>
+          <p className="text-stone-200 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
+            The Interact Club of PEAS Onwards and Upwards Buloba operates with a strict zero-money policy on this platform. We only receive, log, and deliver physical learning supplies directly to student hands across partner PEAS campuses.
+          </p>
         </div>
-        <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 font-serif">
-          Our 100% Direct Material Policy
-        </h2>
-        <p className="text-stone-600 text-sm sm:text-base leading-relaxed">
-          The Interact Club of O&amp;U High School operates with a strict zero-money policy on this platform. We only receive, log, and deliver physical learning supplies directly to student hands.
-        </p>
       </div>
 
       {/* 3 Pillars of Material Transparency */}

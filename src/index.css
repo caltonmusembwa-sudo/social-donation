@@ -53,6 +53,66 @@
   }
 }
 
+@keyframes quoteZoomFade {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes quoteFlipIn {
+  0% {
+    opacity: 0;
+    transform: perspective(800px) rotateY(-18deg) scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(800px) rotateY(0deg) scale(1);
+  }
+}
+
+@keyframes quoteSlideRight {
+  0% {
+    opacity: 0;
+    transform: translateX(40px) scale(0.96);
+  }
+  70% {
+    transform: translateX(-4px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes quoteBounceSoft {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes quoteShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
 .animate-float-gentle {
   animation: floatGentle 4s ease-in-out infinite;
 }
@@ -72,3 +132,20 @@
 .animate-welcome-delayed-2 {
   animation: welcomeSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
 }
+
+.animate-quote-zoom {
+  animation: quoteZoomFade 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-quote-flip {
+  animation: quoteFlipIn 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-quote-slide {
+  animation: quoteSlideRight 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-quote-bounce {
+  animation: quoteBounceSoft 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
